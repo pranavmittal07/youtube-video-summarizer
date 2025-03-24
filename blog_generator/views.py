@@ -7,14 +7,28 @@ from django.http import JsonResponse
 from django.conf import settings
 import json
 import os
+import time
 from pytubefix import YouTube
 import assemblyai as aai
 from openai import OpenAI
 from .models import BlogPost
 from dotenv import load_dotenv
 from pytube.exceptions import PytubeError
+from groq import Groq
+import re
+import nltk
+from nltk.tokenize import sent_tokenize, word_tokenize
+from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer, WordNetLemmatizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 load_dotenv()
+
+# Download NLTK resources
+nltk.download("punkt")
+nltk.download("stopwords")
+nltk.download("wordnet")
+nltk.download('punkt_tab')
 
 # Home Page (Protected)
 @login_required
@@ -112,27 +126,110 @@ def transcribe_audio(link):
         print(f"Error transcribing audio: {e}")
         return None
 
-def generate_blog_content(transcription):
-    client = OpenAI(
-        api_key=os.getenv('OPENAI_API_KEY'),  # this is also the default, it can be omitted
-    )
-    
-    prompt = (
-        "Write a detailed and well-structured Summary based on the following YouTube video transcript. "
-        "Ensure it reads naturally as a blog, not as a video summary.\n\n"
-        f"{transcription}\n\nArticle:"
-    )
+def preprocess_text(text):
+    """Cleans and processes text: lowercasing, stopword removal, stemming, and lemmatization."""
+    text = text.lower()  # Convert to lowercase
+    text = re.sub(r'\s+', ' ', text)  # Remove extra spaces
+    text = re.sub(r'[^\w\s]', '', text)  # Remove special characters and punctuation
 
-    try:
-        response = client.completions.create(
-            model="text-davinci-003",
-            prompt=prompt,
-            max_tokens=1000
-        )
-        return response.choices[0].text.strip() if response.choices else None
-    except Exception as e:
-        print(f"Error generating blog content: {e}")
-        return None
+    stop_words = set(stopwords.words("english"))
+    stemmer = PorterStemmer()
+    lemmatizer = WordNetLemmatizer()
+
+    words = word_tokenize(text)  # Tokenize words
+    processed_words = [
+        lemmatizer.lemmatize(stemmer.stem(word)) 
+        for word in words if word not in stop_words and word.isalnum()
+    ]
+
+    return " ".join(processed_words)  # Return cleaned text
+
+def split_text(text, max_words=300):
+    """Splits text into chunks of approximately max_words words."""
+    words = text.split()
+    chunks = []
+    for i in range(0, len(words), max_words):
+        chunks.append(" ".join(words[i:i+max_words]))
+    return chunks
+
+def filter_with_tfidf(chunks):
+    """Ranks sentences using TF-IDF and filters out low-importance ones."""
+    vectorizer = TfidfVectorizer()
+    filtered_chunks = []
+
+    for chunk in chunks:
+        sentences = sent_tokenize(chunk)  # Split chunk into sentences
+        tfidf_matrix = vectorizer.fit_transform(sentences)  # Compute TF-IDF scores
+        scores = tfidf_matrix.mean(axis=1).A1  # Average score per sentence
+        
+        threshold = sorted(scores, reverse=True)[len(scores) // 2]  # Top 50% sentences
+        important_sentences = [sentences[i] for i, score in enumerate(scores) if score >= threshold]
+        
+        filtered_chunks.append(" ".join(important_sentences))  # Combine important parts
+
+    return filtered_chunks
+
+def generate_blog_content(transcription):
+    client = Groq(api_key=os.environ.get("GROQ"))  # Ensure API key is correctly set
+
+    processed_text = preprocess_text(transcription)  # Preprocess transcript
+    chunks = split_text(processed_text)  # Split into smaller chunks
+    filtered_chunks = filter_with_tfidf(chunks)  # Remove unimportant parts
+    responses = []
+
+    for i, chunk in enumerate(filtered_chunks):
+        try:
+            chat_completion = client.chat.completions.create(
+                messages=[
+                    {
+                        "role": "user",
+                        "content": f"""
+                            You are an AI language model designed to summarize video transcripts effectively. 
+                            Your task is to generate a concise and coherent summary of the provided transcript. 
+                            Follow these guidelines:
+
+                            1. **Length and Conciseness**: Aim for a summary that is no longer than 10% of the original transcript length. 
+                               Focus on the main points and key themes without unnecessary details.
+
+                            2. **Structure**: Organize the summary in a logical flow. 
+                               - Begin with an introductory sentence that captures the essence of the video.
+                               - Follow this with bullet points or short paragraphs outlining the primary topics discussed.
+
+                            3. **Clarity**: Use clear and straightforward language. 
+                               - Avoid jargon unless it is essential to the context. 
+                               - Define any complex terms if they must be included.
+
+                            4. **Objectivity**: Maintain an impartial tone. Do not inject personal opinions or interpretations. 
+                               Stick to the information presented in the transcript.
+
+                            5. **Key Elements to Include**:
+                               - Main subject or theme of the video.
+                               - Key arguments or points made by the speakers.
+                               - Notable quotes or statistics that enhance understanding.
+                               - Conclusion or final thoughts presented in the video.
+
+                            6. **Exclusions**: Omit filler content, personal anecdotes, and off-topic discussions that do not contribute to the overall message.
+
+                            **Transcript**:
+                            {chunk}
+                            
+                            **Summary:**
+                            """,
+                    }
+                ],
+                model="llama-3.3-70b-versatile",
+            )
+            if chat_completion.choices:
+                responses.append(chat_completion.choices[0].message.content)
+            
+            time.sleep(5)  # Delay to prevent rate limits
+
+        except Exception as e:
+            print(f"Error processing chunk {i+1}: {e}")
+            time.sleep(15)  # Longer wait before retrying
+            continue  # Move to the next chunk
+
+    return " ".join(responses)  # Merge all summarized chunks into one
 
 @login_required
 def blog_list(request):

@@ -45,3 +45,6 @@ sqlparse
 webencodings
 websockets
 dotenv
+groq
+nltk
+scikit-learn
