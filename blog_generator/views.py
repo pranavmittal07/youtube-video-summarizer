@@ -13,7 +13,7 @@ import assemblyai as aai
 from openai import OpenAI
 from .models import BlogPost
 from dotenv import load_dotenv
-from pytubefix.exceptions import PytubeError
+from pytubefix.exceptions import VideoUnavailable
 from groq import Groq
 import re
 import nltk
@@ -75,8 +75,11 @@ def fetch_yt_title(link):
     try:
         yt = YouTube(link)
         return yt.title
-    except PytubeError as e:
+    except VideoUnavailable as e:
         print(f"Error fetching YouTube title: {e}")
+        return "Unknown Title"
+    except Exception as e:
+        print(f"General error fetching YouTube title: {e}")
         return "Unknown Title"
 
 def download_audio(link):
