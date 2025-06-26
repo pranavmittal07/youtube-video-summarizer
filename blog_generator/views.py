@@ -73,7 +73,7 @@ def generate_blog(request):
 
 def fetch_yt_title(link):
     try:
-        yt = YouTube(link, use_po_token=True)
+        yt = YouTube(link)
         return yt.title
     except VideoUnavailable as e:
         print(f"Error fetching YouTube title: {e}")
@@ -84,7 +84,7 @@ def fetch_yt_title(link):
 
 def download_audio(link):
     try:
-        yt = YouTube(link, use_po_token=True)
+        yt = YouTube(link)
         audio_stream = yt.streams.filter(only_audio=True).first()
 
         if not audio_stream:
