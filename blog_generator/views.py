@@ -13,7 +13,7 @@ import assemblyai as aai
 from openai import OpenAI
 from .models import BlogPost
 from dotenv import load_dotenv
-from pytube.exceptions import PytubeError
+from pytubefix.exceptions import PytubeError
 from groq import Groq
 import re
 import nltk
