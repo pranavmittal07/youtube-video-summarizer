@@ -12,17 +12,20 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+# print(BASE_DIR)
+load_dotenv(BASE_DIR / '.env')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-3@7%!_)(&g2a5^&)13@5u*ss)wr!vf%2gy1isj_ujeu^f)82+)'
-
+SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -83,14 +86,16 @@ WSGI_APPLICATION = 'ai_blog_app.wsgi.application'
 # }
 
 # postgresql://postgres:kWxCJqFPzULKIapVESZiPYHHWAwokAEz@metro.proxy.rlwy.net:32755/railway
+# Database Config
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'railway',
-        'USER': 'postgres',
-        'PASSWORD': 'kWxCJqFPzULKIapVESZiPYHHWAwokAEz',
-        'HOST': 'metro.proxy.rlwy.net',
-        'PORT': '32755',
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT'),
     }
 }
 

@@ -184,36 +184,75 @@ def generate_blog_content(transcription):
                     {
                         "role": "user",
                         "content": f"""
-                            You are an AI language model designed to summarize video transcripts effectively. 
-                            Your task is to generate a concise and coherent summary of the provided transcript. 
-                            Follow these guidelines:
-
-                            1. **Length and Conciseness**: Aim for a summary that is no longer than 10% of the original transcript length. 
-                               Focus on the main points and key themes without unnecessary details.
-
-                            2. **Structure**: Organize the summary in a logical flow. 
-                               - Begin with an introductory sentence that captures the essence of the video.
-                               - Follow this with bullet points or short paragraphs outlining the primary topics discussed.
-
-                            3. **Clarity**: Use clear and straightforward language. 
-                               - Avoid jargon unless it is essential to the context. 
-                               - Define any complex terms if they must be included.
-
-                            4. **Objectivity**: Maintain an impartial tone. Do not inject personal opinions or interpretations. 
-                               Stick to the information presented in the transcript.
-
-                            5. **Key Elements to Include**:
-                               - Main subject or theme of the video.
-                               - Key arguments or points made by the speakers.
-                               - Notable quotes or statistics that enhance understanding.
-                               - Conclusion or final thoughts presented in the video.
-
-                            6. **Exclusions**: Omit filler content, personal anecdotes, and off-topic discussions that do not contribute to the overall message.
-
+                            You are an advanced YouTube Video Summarizer. Your task is to create a structured, engaging, and information-rich summary based on the transcript of a YouTube video. The summary should condense key insights while ensuring clarity and readability.
+                            
                             **Transcript**:
                             {chunk}
-                            
-                            **Summary:**
+
+                            Summary Format:
+                            Introduction:
+
+                            What is this video about? (Summarize the core topic in 2-3 lines.)
+
+                            Who is the speaker/creator, and what is their expertise (if known)?
+
+                            Who is this video for? (Beginners, professionals, general audience?)
+
+                            What is the main goal of the video? (To educate, review, entertain, inspire, compare, analyze, etc.)
+
+                            Prerequisites (If Any):
+
+                            Any background knowledge needed before watching?
+
+                            Key concepts the speaker assumes the audience already knows.
+
+                            Key Takeaways & Highlights:
+
+                            Summarize the most important points covered in the video.
+
+                            Break down key sections logically.
+
+                            Use bullet points for clarity.
+
+                            Include real-world applications or examples mentioned in the video.
+
+                            Maintain a natural flow, ensuring it feels like a coherent summary rather than just a list of points.
+
+                            If it's a review/comparison, highlight pros, cons, and verdict.
+
+                            Actionable Insights (If Applicable):
+
+                            Any steps, recommendations, or advice provided by the speaker?
+
+                            What should the viewer do next after watching this video? (Further reading, next steps, practical applications, etc.)
+
+                            Mind Map Format (For Visual Representation):
+
+                            Provide a structured, parseable format that can be used to generate a mind map.
+
+                            Use nested bullet points, JSON, or Markdown for hierarchical structuring.
+
+                            Conclusion (If Relevant):
+
+                            A final summary of the videos main message.
+
+                            Any closing remarks from the speaker.
+
+                            If the video is motivational, summarize the core inspirational takeaway.
+
+                            Additional Guidelines:
+                            Ensure the summary is concise yet detailed, allowing a 5-10 minute readable format.
+
+                            Use bold text for emphasis, bullet points for clarity, and paragraph breaks for readability.
+
+                            Remove filler content, redundant information, or off-topic discussions.
+
+                            If the video includes recaps, summarize them briefly without unnecessary repetition.
+
+                            For podcasts/interviews, highlight key insights or quotes from the guest(s).
+
+                            The output should allow a reader to fully grasp the core content of the video without needing to watch it.
+
                             """,
                     }
                 ],
