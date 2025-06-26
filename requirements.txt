@@ -48,3 +48,4 @@ dotenv
 groq
 nltk
 scikit-learn
+gunicorn
