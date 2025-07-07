@@ -1,12 +1,11 @@
 Django
 gunicorn
 psycopg2-binary
-pytubefix
 assemblyai
-openai
 groq
 nltk
 scikit-learn
 numpy
 scipy
 python-dotenv
+yt-dlp
